@@ -1,6 +1,70 @@
-def main():
-    print("Hello from resumerefiner!")
+import streamlit as st
+import PyPDF2
+import io
+import os
+from openai import OpenAI
+from dotenv import load_dotenv
+# Load environment variables from .env file
+load_dotenv()
+
+st.set_page_config(page_title="AI Resume Refiner", page_icon=":robot_face:", layout="centered")
+
+st.title("AI Resume Refiner")
+st.markdown("Upload your resume in PDF format and refine it using the power of AI!.")
+
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+
+uploaded_file = st.file_uploader("Upload your resume (PDF or TXT format)", type=["pdf", "txt"])
+job_description = st.text_input("Enter the job description")
+job_role = st.text_input("Enter the job role you're taregtting(optional)")
+analyze = st.button("Analyze Resume")
+
+def extract_text_from_pdf(pdf_file):
+    pdf_reader = PyPDF2.PdfReader(pdf_file)
+    text = ""
+    for page in pdf_reader.pages:
+        text += page.extract_text() + "\n"
+    return text
 
 
-if __name__ == "__main__":
-    main()
+def extract_text_from_file(uploaded_file):
+    if uploaded_file.type == "application/pdf":
+        return extract_text_from_pdf(io.BytesIO(uploaded_file.read()))
+    return uploaded_file.read().decode("utf-8")
+
+if analyze and uploaded_file:
+    try:
+        st.write("Analyzing your resume...")
+        file_content = extract_text_from_file(uploaded_file)
+
+        if not file_content.strip():
+            st.error("The uploaded file is empty or could not be read.")
+            st.stop()
+        prompt = f"""Please analyze this resume and provide constructive feedback. 
+        Focus on the following aspects:
+        1. Content clarity and impact
+        2. Skills presentation
+        3. Experience descriptions
+        4. Specific improvements for {job_role if job_role else 'general job applications'}
+        5. Alignment with the job description {job_description if job_description else 'No job description provided'}
+
+        Resume content:
+        {file_content}
+        
+        Please provide your analysis in a clear, structured format with specific recommendations."""
+        
+        client = OpenAI(api_key=OPENAI_API_KEY)
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": "You are an expert resume reviewer with years of experience in HR and recruitment in the Tech field."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.7,
+            max_tokens=1000
+        )
+        st.markdown("### Analysis Results")
+        st.markdown(response.choices[0].message.content)
+
+    except Exception as e:
+        st.error(f"An error occured: {str(e)}")
