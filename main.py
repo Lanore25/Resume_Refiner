@@ -40,18 +40,67 @@ if analyze and uploaded_file:
         if not file_content.strip():
             st.error("The uploaded file is empty or could not be read.")
             st.stop()
-        prompt = f"""Please analyze this resume and provide constructive feedback. 
-        Focus on the following aspects:
-        1. Content clarity and impact
-        2. Skills presentation
-        3. Experience descriptions
-        4. Specific improvements for {job_role if job_role else 'general job applications'}
-        5. Alignment with the job description {job_description if job_description else 'No job description provided'}
+        prompt = f"""Your objective is to generate a professional, compelling resume tailored to the provided {job_description}, maximizing interview chances by integrating best practices in content quality, keyword optimization, measurable achievements, and proper formatting.
 
-        Resume content:
-        {file_content}
-        
-        Please provide your analysis in a clear, structured format with specific recommendations."""
+
+
+If a tool, framework or skill doesn't match the ones mentioned in the {job_description} but a similar skill is mentioned, replace the tool/skill/framework with that keyword to match the {job_description}. For example, if Tableau is mentioned but the requirement asks for PowerBI, replace it with PowerBI. Be ethical, don't replace if it is not logical.
+
+
+
+Guidelines to Follow:
+
+
+
+Keyword and Skill Optimization:
+
+Analyze the {job_description} and identify relevant keywords (hard and soft skills).
+
+Match at least 80% of the job description’s keywords to align with applicant tracking systems (ATS).
+
+Prioritize industry-relevant hard skills and soft skills in dedicated sections and throughout bullet points.
+
+Incorporate Measurable Metrics:
+
+
+
+Quantify achievements using the XYZ formula: Accomplished X, measured by Y, by doing Z.
+
+Include at least five measurable results that clearly demonstrate impact.
+
+Avoid vague statements; use metrics to highlight value and effectiveness.
+
+
+
+Resume Length and Structure:
+
+Keep the resume between 400-500 words for optimal readability and engagement.
+
+Maintain a clean, organized structure with clear headings and bullet points.
+
+Exceptions for roles requiring longer resumes (e.g., academia, federal jobs, C-suite) should be appropriately handled.
+
+Content Quality and Language:
+
+
+
+Eliminate buzzwords, clichés, and pronouns (e.g., “I,” “me,” “my”).
+
+Use action-oriented, impactful language to emphasize accomplishments over duties.
+
+Replace generic phrases with specific examples that showcase expertise and success.
+
+Focus on selling professional experience, skills, and results, not merely summarizing past roles.
+
+Additional Instructions:
+
+
+
+Customize each section (Professional Summary, Experience, Skills, Education) to reflect relevance to the job.
+
+Ensure consistent formatting, professional fonts, and appropriate use of whitespace.
+
+Use concise bullet points, each starting with a strong action verb."""
         
         client = OpenAI(api_key=OPENAI_API_KEY)
         response = client.chat.completions.create(
